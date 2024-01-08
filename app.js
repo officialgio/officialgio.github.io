@@ -769,6 +769,7 @@ function initPageTransitions() {
   // NOTE: data.next = current container
   barba.init({
     sync: true,
+    debug: true,
     timeout: 7000,
     transitions: [
       {
