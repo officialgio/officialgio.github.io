@@ -16,8 +16,9 @@ const selectAll = (e) => document.querySelectorAll(e);
 function initSmoothScroll(container) {
   // Scrolling Animation
   locoScroll = new LocomotiveScroll({
-    el: container.querySelector("[data-scroll-container]"),
+    el: document.querySelector("[data-scroll-container]"),
     smooth: true,
+    smoothMobile: true,
   });
 
   // each time Locomotive Scroll updates, tell ScrollTrigger to update too (sync positioning)
@@ -501,7 +502,7 @@ function initHomeAnimations() {
           start: "60%",
           end: "190%",
           scrub: 0,
-          markers: true,
+          // markers: true,
         },
       });
     } else {
