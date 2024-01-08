@@ -476,17 +476,6 @@ function initHomeAnimations() {
       stagger: 1,
     });
 
-    // Work Experience Fade Text
-    const tlFade = gsap.timeline({
-      scrollTrigger: {
-        trigger: ".work",
-        toggleActions: "play none none reset",
-        scrub: true,
-        start: "20%",
-        end: "120%",
-      },
-    });
-
     //  Rounded Div animation
     const roundedElement = document.querySelector(
       ".footer-rounded-div .rounded-div-wrap"
@@ -580,17 +569,6 @@ function initHomeAnimations() {
             ease: "Power2.easeInOut",
           },
           "<"
-        );
-
-        secondTl.to(
-          ".quote",
-          {
-            duration: 1,
-            opacity: 1,
-            y: 0,
-            ease: "Power2.easeInOut",
-          },
-          "<1"
         );
       }
     }
@@ -752,34 +730,6 @@ function initCardTilesAnimations() {
 }
 
 function initWorkAnimations() {
-  if (document.querySelector(".scrollx")) {
-    const container = document.querySelector(".scrollx");
-    const sections = gsap.utils.toArray(".scrollx section");
-    // const texts = gsap.utils.toArray('anim');
-    const mask = document.querySelector(".mask");
-
-    let scrollTween = gsap.to(sections, {
-      xPercent: -100 * (sections.length - 1),
-      ease: "none",
-      scrollTrigger: {
-        trigger: ".scrollx",
-        pin: true,
-        scrub: 1,
-        end: "+=3000",
-      },
-    });
-
-    // when the top hits the left of the window start
-    gsap.to(mask, {
-      width: "100%",
-      scrollTrigger: {
-        trigger: ".wrapper",
-        start: "top left",
-        scrub: 1,
-      },
-    });
-  }
-
   if ($(window).width() < 540) {
     // Delete any uneccessary animations for mobile
     $(".mouse-pos-list-image").remove();
@@ -819,7 +769,6 @@ function initPageTransitions() {
   // NOTE: data.next = current container
   barba.init({
     sync: true,
-    debug: true,
     timeout: 7000,
     transitions: [
       {
@@ -1233,11 +1182,11 @@ function initLoaderHome() {
     });
   }
 
-  tl.to(".loading-words .home-active-last", {
-    duration: 0.01,
-    opacity: 1,
-    delay: 0.15,
-  });
+  // tl.to(".loading-words .home-active-last", {
+  //   duration: 0.01,
+  //   opacity: 1,
+  //   delay: 0.15,
+  // });
 
   tl.to(".loading-screen", {
     duration: 0.8,
