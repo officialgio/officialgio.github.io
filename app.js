@@ -19,7 +19,7 @@ function initSmoothScroll(container) {
     el: container.querySelector("[data-scroll-container]"),
     smooth: true,
     multiplier: 1,
-    smoothMobile: false,
+    smoothMobile: true,
   });
 
   // each time Locomotive Scroll updates, tell ScrollTrigger to update too (sync positioning)
