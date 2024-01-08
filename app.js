@@ -18,8 +18,6 @@ function initSmoothScroll(container) {
   locoScroll = new LocomotiveScroll({
     el: container.querySelector("[data-scroll-container]"),
     smooth: true,
-    multiplier: 1,
-    smoothMobile: true,
   });
 
   // each time Locomotive Scroll updates, tell ScrollTrigger to update too (sync positioning)
@@ -672,7 +670,7 @@ function initHomeAnimations() {
         );
 
         $(".tile.backend .content-column").append(
-          "I specialize in robust backend development, ensuring reliability and high performance for your projects"
+          "I specialize in robust backend development, ensuring reliability and high performance for your projects."
         );
       },
     });
