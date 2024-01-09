@@ -112,7 +112,6 @@ body {
     color: var(--clr-black);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
-    background-color: var(--clr-black);
 }
 
 .flex {

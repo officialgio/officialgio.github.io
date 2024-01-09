@@ -1,411 +1,45 @@
-// --------------------------------------------------------------------
-//
-// Copyright @ Giovanny Hernandez
-//
-// --------------------------------------------------------------------
-
 let locoScroll;
-gsap.registerPlugin(SplitText);
 
-const body = document.body;
-const select = (e) => document.querySelector(e);
-const selectAll = (e) => document.querySelectorAll(e);
-
-// you only need to define the configuration settings you want to CHANGE. Omitted properties won't be affected.
-gsap.config({
-  // nullTargetWarn: false,
-});
-
-// No need to understand all this.
-// Only the instantiation of LocomotiveScroll.
-
-// Split Text
-function initSplitText() {
-  var splitTextLines = new SplitText(".split-lines", {
-    type: "lines, chars",
-    linesClass: "single-line", // name for this split element
+function initSmoothScroll(container) {
+  // Scrolling Animation
+  locoScroll = new LocomotiveScroll({
+    el: container.querySelector("[data-scroll-container]"),
+    smooth: true,
+    multiplier: 1,
+    smoothMobile: false,
   });
 
-  // Rewrap the class
-  $(".split-lines .single-line").wrapInner('<div class="single-line-inner">');
+  // each time Locomotive Scroll updates, tell ScrollTrigger to update too (sync positioning)
+  locoScroll.on("scroll", ScrollTrigger.update);
 
-  // For the top left element
-  var splitTextChars = new SplitText(".split-chars", {
-    type: "chars",
-    charsClass: "single-char",
-  });
-
-  // Scrolltrigger Animation : Gridroom
-  $(".home-lottie-gridroom").each(function (index) {
-    let triggerElement = $(this);
-    let tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: triggerElement,
-        scrub: 0.5,
-        start: "0%",
-        end: "+=225%", // must be a high value
-        onUpdate: (self) => {
-          if (self.progress > 0.33) {
-            h4Animation.play();
-          } else {
-            h4Animation.reverse();
-          }
-          if (self.progress > 0.33) {
-            h2Animation.play();
-          } else {
-            h2Animation.reverse();
-          }
-        },
-      },
-    });
-
-    // No Scrub H4 Animation
-    tl.set($(this).find("h4 .single-char"), {
-      opacity: 0,
-    });
-
-    // Make visible
-    let h4Animation = gsap.timeline({ paused: true }).fromTo(
-      $(this).find("h4 .single-char"),
-      0.01,
-      {
-        opacity: 0,
-      },
-      {
-        opacity: 1,
-        ease: "none",
-        stagger: 0.04,
-      }
-    );
-
-    // h2 pops in
-    tl.set($(this).find("h2 .single-line-inner"), {
-      yPercent: 110,
-    });
-
-    let h2Animation = gsap.timeline({ paused: true }).fromTo(
-      $(this).find("h2 .single-line-inner"),
-      0.8,
-      {
-        yPercent: 110,
-      },
-      {
-        yPercent: 0,
-        ease: "Power3.easeOut",
-        stagger: 0.2,
-      }
-    );
-
-    // row scales in
-    tl.fromTo(
-      $(this).find(".container .row"),
-      0.75,
-      {
-        scale: 0.82,
-      },
-      {
-        scale: 1,
-        ease: "none",
-      },
-      "1"
-      // "<"
-    );
-
-    tl.fromTo(
-      $(this).find("h2 .single-line-inner div"), // Target elements
-      0.01, // Duration (in seconds)
-      {
-        // From properties
-        color: "#767270", // Initial color
-      },
-      {
-        // To properties
-        color: "#000000", // Final color
-        ease: "none", // Easing function (none in this case)
-        stagger: 0.025, // Stagger between animations for each element
-      },
-      "0.75" // start 0.75 seconds into the timeline
-    );
-  });
-}
-
-// If button is hover do the animation else reset
-function initButtonsAnimations() {
-  const btnClick = document.querySelectorAll(".btn-click");
-  btnClick.forEach((e) => {
-    const btnFill = e.querySelector(".btn-fill");
-    gsap.to(btnFill, { y: "-76%", ease: Power2.easeInOut });
-
-    // Move it back down 76% then to the original y-axis
-    e.addEventListener("mouseenter", function () {
-      gsap.to(btnFill, 0.6, {
-        startAt: { y: "76%" },
-        y: "0%",
-        ease: Power2.easeInOut,
-      });
-    });
-
-    // Move it back up once mouseleave
-    e.addEventListener("mouseleave", function () {
-      gsap.to(btnFill, 0.5, { y: "-76%", ease: Power2.easeInOut });
-    });
-  });
-}
-
-function initMagneticButtons() {
-  const magnets = document.querySelectorAll(".magnetic");
-  var strength = 100;
-
-  // START : If screen is bigger as 540 px do magnetic
-  if (window.innerWidth > 540) {
-    magnets.forEach((magnet) => {
-      magnet.addEventListener("mousemove", moveMagnet);
-
-      // reset to normal state
-      magnet.addEventListener("mouseleave", function (event) {
-        gsap.to(event.currentTarget, 1.5, {
-          x: 0,
-          y: 0,
-          ease: Elastic.easeOut,
-        });
-        gsap.to($(this).find(".btn-text"), 1.5, {
-          x: 0,
-          y: 0,
-          ease: Elastic.easeOut,
-        });
-      });
-    });
-
-    // Mouse move
-    function moveMagnet(event) {
-      var magnetButton = event.currentTarget; // <a data-strength="24" data-strength-text="12" class="btn-click magnetic clickable"...</a>
-      var bounding = magnetButton.getBoundingClientRect();
-      var magnetsStrength = magnetButton.getAttribute("data-strength");
-      var magnetsStrengthText = magnetButton.getAttribute("data-strength-text");
-
-      gsap.to(magnetButton, 1.5, {
-        x:
-          ((event.clientX - bounding.left) / magnetButton.offsetWidth - 0.5) *
-          magnetsStrength,
-        y:
-          ((event.clientY - bounding.top) / magnetButton.offsetHeight - 0.5) *
-          magnetsStrength,
-        rotate: "0.001deg",
-        ease: Power4.easeOut,
-      });
-      gsap.to($(this).find(".btn-text"), 1.5, {
-        x:
-          ((event.clientX - bounding.left) / magnetButton.offsetWidth - 0.5) *
-          magnetsStrengthText,
-        y:
-          ((event.clientY - bounding.top) / magnetButton.offsetHeight - 0.5) *
-          magnetsStrengthText,
-        rotate: "0.001deg",
-        ease: Power4.easeOut,
-      });
-    }
-  }
-}
-
-function initHamburgerNav() {
-  // Open/close navigation when clicked .btn-hamburger
-
-  $(document).ready(function () {
-    $(".btn-hamburger, .btn-menu").click(function () {
-      // If already clicked then reset and continue scrolling
-      if ($(".btn-hamburger, .btn-menu").hasClass("active")) {
-        $(".btn-hamburger, .btn-menu").removeClass("active");
-        $("main").removeClass("nav-active");
-        locoScroll.start();
-      } else {
-        // Otherwise add the active class to make the transition animation
-        $(".btn-hamburger, .btn-menu").addClass("active");
-        $("main").addClass("nav-active");
-        locoScroll.stop();
-      }
-    });
-    $(".fixed-nav-back").click(function () {
-      $(".btn-hamburger, .btn-menu").removeClass("active");
-      $("main").removeClass("nav-active");
-      locoScroll.start();
-    });
-  });
-
-  // using key
-  $(document).keydown(function (e) {
-    if (e.keyCode == 27) {
-      if ($("main").hasClass("nav-active")) {
-        $(".btn-hamburger, .btn-menu").removeClass("active");
-        $("main").removeClass("nav-active");
-        locoScroll.start();
-      }
-    }
-  });
-}
-
-/**
- * Scrolltrigger Scroll Check
- */
-function initScrolltriggerNav() {
-  const main = document.querySelector("main");
-
-  // Pop Up Animation
-  const tlPopUpNav = gsap.timeline({
-    scrollTrigger: {
-      trigger: main,
-      start: "top -30%",
-      toggleActions: "play none none reverse",
-      onEnter: () => {
-        // for css animation
-        main.classList.add("scrolled");
-      },
-      onLeaveBack: () => {
-        main.classList.remove("scrolled");
-      },
+  // tell ScrollTrigger to use these proxy methods for the ".smooth-scroll" element since Locomotive Scroll is hijacking things
+  ScrollTrigger.scrollerProxy("[data-scroll-container]", {
+    scrollTop(value) {
+      return arguments.length
+        ? locoScroll.scrollTo(value, { duration: 0, disableLerp: true })
+        : locoScroll.scroll.instance.scroll.y;
+    }, // we don't have to define a scrollLeft because we're only scrolling vertically.
+    getBoundingClientRect() {
+      return {
+        top: 0,
+        left: 0,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
     },
+    // LocomotiveScroll handles things completely differently on mobile devices - it doesn't even transform the container at all! So to get the correct behavior and avoid jitters, we should pin things with position: fixed on mobile. We sense it by checking to see if there's a transform applied to the container (the LocomotiveScroll-controlled element).
+    pinType: container.querySelector("[data-scroll-container]").style.transform
+      ? "transform"
+      : "fixed",
   });
 
-  /**
-   * Animated nav lines when clicked
-   */
-  const fixedNav = document.querySelector(".fixed-nav");
-  const clickables = document.querySelectorAll(".clickable");
-  const shadow = document.querySelector(".fixed-nav-back");
-  const burger = document.querySelector(".btn-hamburger");
+  ScrollTrigger.defaults({ scroller: "[data-scroll-container]" });
 
-  burger.addEventListener("click", navToggle);
+  // each time the window updates, we should refresh ScrollTrigger and then update LocomotiveScroll.
+  ScrollTrigger.addEventListener("refresh", () => locoScroll.update());
 
-  // You must add classlist of .nav-active for css animations to work
-  function navToggle(e) {
-    if (!fixedNav.classList.contains("nav-active")) {
-      fixedNav.classList.add("nav-active");
-      shadow.classList.add("nav-active");
-
-      gsap.to(".header__nav__line1", 0.5, { rotate: "45", y: 0 });
-      gsap.to(".header__nav__line2", 0.5, { rotate: "-45", y: -5 });
-    } else {
-      removeNav();
-    }
-
-    // remove if clicked on a nav btn
-    clickables.forEach((clickable) => {
-      clickable.addEventListener("click", removeNav);
-    });
-
-    function removeNav() {
-      fixedNav.classList.remove("nav-active");
-      shadow.classList.remove("nav-active");
-
-      gsap.to(".header__nav__line1", 0.5, { rotate: "0", y: 0 });
-      gsap.to(".header__nav__line2", 0.5, { rotate: "0", y: 0 });
-    }
-  }
-}
-
-// Must include for Span Line Animations
-function initTricksWords() {
-  // Find all text with .tricks class and break each letter into a span
-  const spanWord = document.getElementsByClassName("span-lines");
-  for (let i = 0; i < spanWord.length; i++) {
-    let wordWrap = spanWord.item(i);
-    wordWrap.innerHTML = wordWrap.innerHTML.replace(
-      /(^|<\/?[^>]+>|\s+)([^\s<]+)/g,
-      '$1<span class="span-line"><span class="span-line-inner">$2</span></span>'
-    );
-  }
-}
-
-// Span Line Animations
-function initScrolltriggerAnimations() {
-  const spanLine = document.querySelector(".span-lines.animate"); // <h4 class="span-lines animate fs-500">
-  const homeIntro = document.querySelector(".home-intro"); // <h4 class="span-lines animate fs-500">
-  const workGrid = document.querySelector(".work-grid");
-
-  // For Home Intros Section
-  if (spanLine && homeIntro) {
-    $(".home-intro .span-lines.animate").each(function (index) {
-      let triggerElement = $(this);
-      let targetElement = $(".home-intro .span-lines.animate .span-line-inner");
-
-      let tl;
-
-      if ($(window).width() > 540) {
-        // Desktop Animation
-        tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: triggerElement,
-            toggleActions: "play none none reverse",
-            start: "-20% 20% ",
-            end: "10% 0%",
-            // markers: true,
-          },
-        });
-      } else {
-        tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: triggerElement,
-            toggleActions: "play none none reverse",
-            start: "-69% 10% ",
-            end: "10% 0%",
-            // markers: true,
-          },
-        });
-      }
-
-      if (targetElement) {
-        tl.from(targetElement, {
-          y: "100%", // set visible
-          stagger: 0.01,
-          ease: "power3.out",
-          duration: 1,
-          delay: 0,
-        });
-      }
-    });
-  }
-
-  // For Work Grid Animation
-  if (spanLine && workGrid) {
-    $(".work-grid .span-lines.animate").each(function (index) {
-      let triggerElement = $(this);
-      let targetElement = $(".work-grid .span-lines.animate .span-line-inner");
-
-      let tl;
-
-      if ($(window).width() > 540) {
-        // Desktop Animation
-        tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: triggerElement,
-            toggleActions: "play none none reverse",
-            start: "+=-150% 20% ",
-            // end: "10% 0%",
-            // markers: true,
-          },
-        });
-      } else {
-        tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: triggerElement,
-            toggleActions: "play none none reverse",
-            start: "-69% 10% ",
-            end: "10% 0%",
-            // markers: true,
-          },
-        });
-      }
-
-      if (targetElement) {
-        tl.from(targetElement, {
-          y: "100%", // set visible
-          stagger: 0.01,
-          ease: "power3.out",
-          duration: 1,
-          delay: 0,
-        });
-      }
-    });
-  }
+  // after everything is set up, refresh() ScrollTrigger and update LocomotiveScroll because padding may have been added for pinning, etc.
+  ScrollTrigger.refresh();
 }
 
 function initHomeAnimations() {
@@ -453,9 +87,9 @@ function initHomeAnimations() {
       // Desktop
       tl = gsap.timeline({
         scrollTrigger: {
-          trigger: ".freelance",
-          start: "60%",
-          end: "190%",
+          trigger: ".footer",
+          start: "200%",
+          end: "300%",
           scrub: 0,
           // markers: true,
         },
@@ -464,7 +98,7 @@ function initHomeAnimations() {
       // For mobile
       tl = gsap.timeline({
         scrollTrigger: {
-          trigger: ".freelance",
+          trigger: ".footer",
           start: "-150%",
           end: "15%",
           scrub: 0,
@@ -596,7 +230,6 @@ function initHomeAnimations() {
             scrub: 0.5,
             start: "0% ",
             end: "+=250%",
-            pin: true,
             // markers: true,
           },
         });
@@ -695,155 +328,281 @@ function initCardTilesAnimations() {
   });
 }
 
-function initWorkAnimations() {
-  if ($(window).width() < 540) {
-    // Delete any uneccessary animations for mobile
-    $(".mouse-pos-list-image").remove();
-    $(".mouse-pos-list-btn").remove();
-    $(".mouse-pos-list-span").remove();
-    $(".case-intro-image").remove();
-    $(".description-speaker").html(
-      "Feel free to message me directly on LinkedIn."
+// Span Line Animations
+function initScrolltriggerAnimations() {
+  const spanLine = document.querySelector(".span-lines.animate"); // <h4 class="span-lines animate fs-500">
+  const homeIntro = document.querySelector(".home-intro"); // <h4 class="span-lines animate fs-500">
+  const workGrid = document.querySelector(".work-grid");
+
+  // For Home Intros Section
+  if (spanLine && homeIntro) {
+    $(".home-intro .span-lines.animate").each(function (index) {
+      let triggerElement = $(this);
+      let targetElement = $(".home-intro .span-lines.animate .span-line-inner");
+
+      let tl;
+
+      if ($(window).width() > 540) {
+        // Desktop Animation
+        tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: triggerElement,
+            toggleActions: "play none none reverse",
+            start: "-20% 20% ",
+            end: "10% 0%",
+            // markers: true,
+          },
+        });
+      } else {
+        tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: triggerElement,
+            toggleActions: "play none none reverse",
+            start: "-69% 10% ",
+            end: "10% 0%",
+            // markers: true,
+          },
+        });
+      }
+
+      if (targetElement) {
+        tl.from(targetElement, {
+          y: "100%", // set visible
+          stagger: 0.01,
+          ease: "power3.out",
+          duration: 1,
+          delay: 0,
+        });
+      }
+    });
+  }
+
+  // For Work Grid Animation
+  if (spanLine && workGrid) {
+    $(".work-grid .span-lines.animate").each(function (index) {
+      let triggerElement = $(this);
+      let targetElement = $(".work-grid .span-lines.animate .span-line-inner");
+
+      let tl;
+
+      if ($(window).width() > 540) {
+        // Desktop Animation
+        tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: triggerElement,
+            toggleActions: "play none none reverse",
+            start: "+=-150% 20% ",
+            // end: "10% 0%",
+            // markers: true,
+          },
+        });
+      } else {
+        tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: triggerElement,
+            toggleActions: "play none none reverse",
+            start: "-69% 10% ",
+            end: "10% 0%",
+            // markers: true,
+          },
+        });
+      }
+
+      if (targetElement) {
+        tl.from(targetElement, {
+          y: "100%", // set visible
+          stagger: 0.01,
+          ease: "power3.out",
+          duration: 1,
+          delay: 0,
+        });
+      }
+    });
+  }
+}
+
+// Must include for Span Line Animations
+function initTricksWords() {
+  // Find all text with .tricks class and break each letter into a span
+  const spanWord = document.getElementsByClassName("span-lines");
+  for (let i = 0; i < spanWord.length; i++) {
+    let wordWrap = spanWord.item(i);
+    wordWrap.innerHTML = wordWrap.innerHTML.replace(
+      /(^|<\/?[^>]+>|\s+)([^\s<]+)/g,
+      '$1<span class="span-line"><span class="span-line-inner">$2</span></span>'
     );
   }
 }
 
-function initSmoothScroll(container) {
-  // Scrolling Animation
-  locoScroll = new LocomotiveScroll({
-    el: container.querySelector("[data-scroll-container]"),
-    smooth: true,
-    multiplier: 1,
-    smoothMobile: true,
-  });
+// If button is hover do the animation else reset
+function initButtonsAnimations() {
+  const btnClick = document.querySelectorAll(".btn-click");
+  btnClick.forEach((e) => {
+    const btnFill = e.querySelector(".btn-fill");
+    gsap.to(btnFill, { y: "-76%", ease: Power2.easeInOut });
 
-  // each time Locomotive Scroll updates, tell ScrollTrigger to update too (sync positioning)
-  locoScroll.on("scroll", ScrollTrigger.update);
-
-  // tell ScrollTrigger to use these proxy methods for the ".smooth-scroll" element since Locomotive Scroll is hijacking things
-  ScrollTrigger.scrollerProxy("[data-scroll-container]", {
-    scrollTop(value) {
-      return arguments.length
-        ? locoScroll.scrollTo(value, { duration: 0, disableLerp: true })
-        : locoScroll.scroll.instance.scroll.y;
-    }, // we don't have to define a scrollLeft because we're only scrolling vertically.
-    getBoundingClientRect() {
-      return {
-        top: 0,
-        left: 0,
-        width: window.innerWidth,
-        height: window.innerHeight,
-      };
-    },
-    // LocomotiveScroll handles things completely differently on mobile devices - it doesn't even transform the container at all! So to get the correct behavior and avoid jitters, we should pin things with position: fixed on mobile. We sense it by checking to see if there's a transform applied to the container (the LocomotiveScroll-controlled element).
-    pinType: container.querySelector("[data-scroll-container]").style.transform
-      ? "transform"
-      : "fixed",
-  });
-
-  ScrollTrigger.defaults({ scroller: "[data-scroll-container]" });
-
-  // each time the window updates, we should refresh ScrollTrigger and then update LocomotiveScroll.
-  ScrollTrigger.addEventListener("refresh", () => locoScroll.update());
-
-  // after everything is set up, refresh() ScrollTrigger and update LocomotiveScroll because padding may have been added for pinning, etc.
-  ScrollTrigger.refresh();
-}
-
-function initPageTransitions() {
-  // do something before the transition starts
-  barba.hooks.before(() => {
-    select("html").classList.add("is-transitioning");
-  });
-
-  // do something after the transition finishes
-  barba.hooks.after(() => {
-    select("html").classList.remove("is-transitioning");
-    // reinit locomotive scroll
-    locoScroll.init();
-    locoScroll.stop();
-  });
-
-  // scroll to the top of the page
-  barba.hooks.enter(() => {
-    locoScroll.destroy();
-  });
-
-  // scroll to the top of the page
-  barba.hooks.afterEnter(() => {
-    window.scrollTo(0, 0);
-  });
-
-  if ($(window).width() > 540) {
-    barba.hooks.leave(() => {
-      $(".btn-hamburger, .btn-menu").removeClass("active");
-      $("main").removeClass("nav-active");
+    // Move it back down 76% then to the original y-axis
+    e.addEventListener("mouseenter", function () {
+      gsap.to(btnFill, 0.6, {
+        startAt: { y: "76%" },
+        y: "0%",
+        ease: Power2.easeInOut,
+      });
     });
+
+    // Move it back up once mouseleave
+    e.addEventListener("mouseleave", function () {
+      gsap.to(btnFill, 0.5, { y: "-76%", ease: Power2.easeInOut });
+    });
+  });
+}
+
+function initScrolltriggerNav() {
+  const tlPopUpNav = gsap.timeline({
+    scrollTrigger: {
+      trigger: ".btn-hamburger",
+      start: "0%",
+      toggleActions: "play none none reverse",
+      // markers: true,
+      onEnter: () => {
+        // for css animation
+        $(".btn-hamburger").addClass("scrolled");
+      },
+      onLeaveBack: () => {
+        $(".btn-hamburger").removeClass("scrolled");
+      },
+    },
+  });
+
+  /**
+   * Animated nav lines when clicked
+   */
+  const fixedNav = document.querySelector(".fixed-nav");
+  const clickables = document.querySelectorAll(".clickable");
+  const shadow = document.querySelector(".fixed-nav-back");
+  const burger = document.querySelector(".btn-hamburger");
+
+  burger.addEventListener("click", navToggle);
+
+  // You must add classlist of .nav-active for css animations to work
+  function navToggle(e) {
+    if (!fixedNav.classList.contains("nav-active")) {
+      fixedNav.classList.add("nav-active");
+      shadow.classList.add("nav-active");
+
+      gsap.to(".header__nav__line1", 0.5, { rotate: "45", y: 0 });
+      gsap.to(".header__nav__line2", 0.5, { rotate: "-45", y: -5 });
+    } else {
+      removeNav();
+    }
+
+    // remove if clicked on a nav btn
+    clickables.forEach((clickable) => {
+      clickable.addEventListener("click", removeNav);
+    });
+
+    function removeNav() {
+      fixedNav.classList.remove("nav-active");
+      shadow.classList.remove("nav-active");
+
+      gsap.to(".header__nav__line1", 0.5, { rotate: "0", y: 0 });
+      gsap.to(".header__nav__line2", 0.5, { rotate: "0", y: 0 });
+    }
   }
+}
 
-  // NOTE: data.next = current container
-  barba.init({
-    sync: true,
-    debug: true,
-    timeout: 7000,
-    transitions: [
-      {
-        name: "default",
-        once(data) {
-          // Current page once transition (browser first load)
-          initSmoothScroll(data.next.container);
-          initScript();
-          initLoader();
-        },
-        async leave(data) {
-          // Current page leave transition
-          pageTransitionIn(data.current);
-          await delay(495);
-          data.current.container.remove();
-        },
-        async enter(data) {
-          // Next page enter transition
-          pageTransitionOut(data.next); // optional
-          initNextWord(data);
-        },
-        async beforeEnter(data) {
-          //Before enter transition/view
-          ScrollTrigger.getAll().forEach((t) => t.kill());
-          locoScroll.destroy(); // Optional!
-          initSmoothScroll(data.next.container);
-          initScript();
-          ScrollTrigger.refresh(); // IMPORTANT!
-        },
-      },
-      {
-        // If this isn't done then initLoader() will be called from once
-        name: "to-home",
-        from: {},
-        to: {
-          namespace: ["home"],
-        },
-        once(data) {
-          // do something once on the initial page load
-          initSmoothScroll(data.next.container);
-          initScript();
-          initLoaderHome();
-        },
-      },
-    ],
+function initHamburgerNav() {
+  // Open/close navigation when clicked .btn-hamburger
+
+  $(document).ready(function () {
+    $(".btn-hamburger, .btn-menu").click(function () {
+      // If already clicked then reset and continue scrolling
+      if ($(".btn-hamburger, .btn-menu").hasClass("active")) {
+        $(".btn-hamburger, .btn-menu").removeClass("active");
+        $(".main").removeClass("nav-active");
+        locoScroll.start();
+      } else {
+        // Otherwise add the active class to make the transition animation
+        $(".btn-hamburger, .btn-menu").addClass("active");
+        $(".main").addClass("nav-active");
+        locoScroll.stop();
+      }
+    });
+    $(".fixed-nav-back").click(function () {
+      $(".btn-hamburger, .btn-menu").removeClass("active");
+      $(".main").removeClass("nav-active");
+      locoScroll.start();
+    });
+  });
+
+  // using key
+  $(document).keydown(function (e) {
+    if (e.keyCode == 27) {
+      if ($("main").hasClass("nav-active")) {
+        $(".btn-hamburger, .btn-menu").removeClass("active");
+        $(".main").removeClass("nav-active");
+        locoScroll.start();
+      }
+    }
   });
 }
 
-initPageTransitions();
+function initMagneticButtons() {
+  const magnets = document.querySelectorAll(".magnetic");
+  var strength = 100;
 
-function delay(n) {
-  n = n || 2000;
-  return new Promise((done) => {
-    setTimeout(() => {
-      done();
-    }, n);
-  });
+  // START : If screen is bigger as 540 px do magnetic
+  if (window.innerWidth > 540) {
+    magnets.forEach((magnet) => {
+      magnet.addEventListener("mousemove", moveMagnet);
+
+      // reset to normal state
+      magnet.addEventListener("mouseleave", function (event) {
+        gsap.to(event.currentTarget, 1.5, {
+          x: 0,
+          y: 0,
+          ease: Elastic.easeOut,
+        });
+        gsap.to($(this).find(".btn-text"), 1.5, {
+          x: 0,
+          y: 0,
+          ease: Elastic.easeOut,
+        });
+      });
+    });
+
+    // Mouse move
+    function moveMagnet(event) {
+      var magnetButton = event.currentTarget; // <a data-strength="24" data-strength-text="12" class="btn-click magnetic clickable"...</a>
+      var bounding = magnetButton.getBoundingClientRect();
+      var magnetsStrength = magnetButton.getAttribute("data-strength");
+      var magnetsStrengthText = magnetButton.getAttribute("data-strength-text");
+
+      gsap.to(magnetButton, 1.5, {
+        x:
+          ((event.clientX - bounding.left) / magnetButton.offsetWidth - 0.5) *
+          magnetsStrength,
+        y:
+          ((event.clientY - bounding.top) / magnetButton.offsetHeight - 0.5) *
+          magnetsStrength,
+        rotate: "0.001deg",
+        ease: Power4.easeOut,
+      });
+      gsap.to($(this).find(".btn-text"), 1.5, {
+        x:
+          ((event.clientX - bounding.left) / magnetButton.offsetWidth - 0.5) *
+          magnetsStrengthText,
+        y:
+          ((event.clientY - bounding.top) / magnetButton.offsetHeight - 0.5) *
+          magnetsStrengthText,
+        rotate: "0.001deg",
+        ease: Power4.easeOut,
+      });
+    }
+  }
 }
 
+// Main Scripts
 function initScript() {
   // initNavAnimations();
   initSplitText();
@@ -861,6 +620,131 @@ function initScript() {
   // setTimeout(() => {
   //   console.clear();
   // }, 5000);
+}
+
+// Close nav before leaving
+barba.hooks.leave(() => {
+  $(".btn-hamburger, .btn-menu").removeClass("active");
+  $(".main").removeClass("nav-active");
+
+  // scroll to the top of the page for mobile devices
+  if ($(window).width() < 540) {
+    window.scrollTo(0, 0);
+  }
+});
+
+// NOTE: data.next = current container
+barba.init({
+  sync: true,
+  debug: true,
+  timeout: 7000,
+  transitions: [
+    {
+      name: "default",
+      once(data) {
+        // Current page once transition (browser first load)
+        initSmoothScroll(data.next.container);
+        initScript();
+        initLoader();
+      },
+      async leave(data) {
+        // Current page leave transition
+        pageTransitionIn(data, this);
+        await delay(495);
+        data.current.container.remove();
+      },
+      async enter(data) {
+        // Next page enter transition
+        pageTransitionOut(data, this);
+        initNextWord(data);
+      },
+      async beforeEnter(data) {
+        //Before enter transition/view
+        ScrollTrigger.getAll().forEach((t) => t.kill());
+        locoScroll.destroy(); // Optional!
+        initSmoothScroll(data.next.container);
+        initScript();
+        ScrollTrigger.refresh(); // IMPORTANT!
+      },
+    },
+    {
+      // If this isn't done then initLoader() will be called from once
+      name: "to-home",
+      from: {},
+      to: {
+        namespace: ["home"],
+      },
+      once(data) {
+        // do something once on the initial page load
+        initSmoothScroll(data.next.container);
+        initScript();
+        initLoaderHome();
+      },
+    },
+  ],
+});
+
+function delay(n) {
+  n = n || 2000;
+  return new Promise((done) => {
+    setTimeout(() => {
+      done();
+    }, n);
+  });
+}
+
+// Delete any uneccessary animations for mobile
+function initWorkAnimations() {
+  if ($(window).width() < 540) {
+    $(".mouse-pos-list-image").remove();
+    $(".mouse-pos-list-btn").remove();
+    $(".mouse-pos-list-span").remove();
+    $(".case-intro-image").remove();
+    $(".description-speaker").html(
+      "Feel free to message me directly on LinkedIn."
+    );
+    $(".home-lottie-gridroom").remove();
+  }
+}
+
+function initNextWord(data) {
+  let parser = new DOMParser();
+  let dom = parser.parseFromString(data.next.html, "text/html");
+  let nextProjects = dom.querySelector(".loading-words");
+
+  // replace the next namespace HTML
+  document.querySelector(".loading-words").innerHTML = nextProjects.innerHTML;
+}
+
+function initLazyLoad() {
+  const blurDivs = document.querySelectorAll(".blur-load");
+
+  blurDivs.forEach((div) => {
+    const img = document.querySelector("img");
+
+    function loaded() {
+      // show img
+      div.classList.add("loaded");
+      // Once div contains loaded trigger the animation
+      if (document.querySelector(".blur-load").classList.contains("loaded")) {
+        gsap.to(".blur-load > img", {
+          opacity: 1,
+          duration: 0.1,
+          ease: "ease-in-out",
+        });
+      }
+    }
+
+    // done loaded
+    if (img.complete) {
+      setTimeout(() => loaded(), 1000);
+      // loaded()
+    } else {
+      img.addEventListener("load", () => {
+        setTimeout(() => loaded(), 1000);
+      });
+    }
+  });
 }
 
 // Animation - Page transition In
@@ -996,11 +880,11 @@ function pageTransitionOut() {
   var tl = gsap.timeline();
 
   if ($(window).width() > 540) {
-    tl.set("main .once-in", {
+    tl.set(".main .once-in", {
       y: "50vh",
     });
   } else {
-    tl.set("main .once-in", {
+    tl.set(".main .once-in", {
       y: "20vh",
     });
   }
@@ -1009,7 +893,7 @@ function pageTransitionOut() {
     locoScroll.start();
   });
 
-  tl.to("main .once-in", {
+  tl.to(".main .once-in", {
     duration: 1,
     y: "0vh",
     stagger: 0.05,
@@ -1028,11 +912,11 @@ function initLoader() {
   });
 
   if ($(window).width() > 540) {
-    tl.set("main .once-in", {
+    tl.set(".main .once-in", {
       y: "50vh",
     });
   } else {
-    tl.set("main .once-in", {
+    tl.set(".main .once-in", {
       y: "10vh",
     });
   }
@@ -1093,7 +977,7 @@ function initLoader() {
   });
 
   tl.to(
-    "main .once-in",
+    ".main .once-in",
     {
       duration: 1,
       y: "0vh",
@@ -1122,11 +1006,11 @@ function initLoaderHome() {
   });
 
   if ($(window).width() > 540) {
-    tl.set("main .once-in", {
+    tl.set(".main .once-in", {
       y: "50vh", // up illusion
     });
   } else {
-    tl.set("main .once-in", {
+    tl.set(".main .once-in", {
       y: "10vh",
     });
   }
@@ -1246,7 +1130,7 @@ function initLoaderHome() {
 
   // Place back in view
   tl.to(
-    "main .once-in",
+    ".main .once-in",
     {
       duration: 1.5,
       y: "0vh",
@@ -1267,46 +1151,6 @@ function initLoaderHome() {
 
   tl.call(function () {
     locoScroll.start();
-  });
-}
-
-function initNextWord(data) {
-  let parser = new DOMParser();
-  let dom = parser.parseFromString(data.next.html, "text/html");
-  let nextProjects = dom.querySelector(".loading-words");
-
-  // replace the next namespace HTML
-  document.querySelector(".loading-words").innerHTML = nextProjects.innerHTML;
-}
-
-function initLazyLoad() {
-  const blurDivs = document.querySelectorAll(".blur-load");
-
-  blurDivs.forEach((div) => {
-    const img = document.querySelector("img");
-
-    function loaded() {
-      // show img
-      div.classList.add("loaded");
-      // Once div contains loaded trigger the animation
-      if (document.querySelector(".blur-load").classList.contains("loaded")) {
-        gsap.to(".blur-load > img", {
-          opacity: 1,
-          duration: 0.1,
-          ease: "ease-in-out",
-        });
-      }
-    }
-
-    // done loaded
-    if (img.complete) {
-      setTimeout(() => loaded(), 1000);
-      // loaded()
-    } else {
-      img.addEventListener("load", () => {
-        setTimeout(() => loaded(), 1000);
-      });
-    }
   });
 }
 
@@ -1503,5 +1347,115 @@ function initFlickitySlider() {
         nextButton.removeAttr("disabled");
       }
     }
+  });
+}
+
+// Split Text
+function initSplitText() {
+  var splitTextLines = new SplitText(".split-lines", {
+    type: "lines, chars",
+    linesClass: "single-line", // name for this split element
+  });
+
+  // Rewrap the class
+  $(".split-lines .single-line").wrapInner('<div class="single-line-inner">');
+
+  // For the top left element
+  var splitTextChars = new SplitText(".split-chars", {
+    type: "chars",
+    charsClass: "single-char",
+  });
+
+  // Scrolltrigger Animation : Gridroom
+  $(".home-lottie-gridroom").each(function (index) {
+    let triggerElement = $(this);
+    let tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: triggerElement,
+        scrub: 0.5,
+        start: "0%",
+        end: "+=225%", // must be a high value
+        onUpdate: (self) => {
+          if (self.progress > 0.33) {
+            h4Animation.play();
+          } else {
+            h4Animation.reverse();
+          }
+          if (self.progress > 0.33) {
+            h2Animation.play();
+          } else {
+            h2Animation.reverse();
+          }
+        },
+      },
+    });
+
+    // No Scrub H4 Animation
+    tl.set($(this).find("h4 .single-char"), {
+      opacity: 0,
+    });
+
+    // Make visible
+    let h4Animation = gsap.timeline({ paused: true }).fromTo(
+      $(this).find("h4 .single-char"),
+      0.01,
+      {
+        opacity: 0,
+      },
+      {
+        opacity: 1,
+        ease: "none",
+        stagger: 0.04,
+      }
+    );
+
+    // h2 pops in
+    tl.set($(this).find("h2 .single-line-inner"), {
+      yPercent: 110,
+    });
+
+    let h2Animation = gsap.timeline({ paused: true }).fromTo(
+      $(this).find("h2 .single-line-inner"),
+      0.8,
+      {
+        yPercent: 110,
+      },
+      {
+        yPercent: 0,
+        ease: "Power3.easeOut",
+        stagger: 0.2,
+      }
+    );
+
+    // row scales in
+    tl.fromTo(
+      $(this).find(".container .row"),
+      0.75,
+      {
+        scale: 0.82,
+      },
+      {
+        scale: 1,
+        ease: "none",
+      },
+      "1"
+      // "<"
+    );
+
+    tl.fromTo(
+      $(this).find("h2 .single-line-inner div"), // Target elements
+      0.01, // Duration (in seconds)
+      {
+        // From properties
+        color: "#767270", // Initial color
+      },
+      {
+        // To properties
+        color: "#000000", // Final color
+        ease: "none", // Easing function (none in this case)
+        stagger: 0.025, // Stagger between animations for each element
+      },
+      "0.75" // start 0.75 seconds into the timeline
+    );
   });
 }
