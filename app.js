@@ -216,18 +216,18 @@ function initHamburgerNav() {
       if ($(".btn-hamburger, .btn-menu").hasClass("active")) {
         $(".btn-hamburger, .btn-menu").removeClass("active");
         $("main").removeClass("nav-active");
-        scroll.start();
+        locoScroll.start();
       } else {
         // Otherwise add the active class to make the transition animation
         $(".btn-hamburger, .btn-menu").addClass("active");
         $("main").addClass("nav-active");
-        scroll.stop();
+        locoScroll.stop();
       }
     });
     $(".fixed-nav-back").click(function () {
       $(".btn-hamburger, .btn-menu").removeClass("active");
       $("main").removeClass("nav-active");
-      scroll.start();
+      locoScroll.start();
     });
   });
 
@@ -237,7 +237,7 @@ function initHamburgerNav() {
       if ($("main").hasClass("nav-active")) {
         $(".btn-hamburger, .btn-menu").removeClass("active");
         $("main").removeClass("nav-active");
-        scroll.start();
+        locoScroll.start();
       }
     }
   });
@@ -760,13 +760,13 @@ function initPageTransitions() {
   barba.hooks.after(() => {
     select("html").classList.remove("is-transitioning");
     // reinit locomotive scroll
-    scroll.init();
-    scroll.stop();
+    locoScroll.init();
+    locoScroll.stop();
   });
 
   // scroll to the top of the page
   barba.hooks.enter(() => {
-    scroll.destroy();
+    locoScroll.destroy();
   });
 
   // scroll to the top of the page
@@ -868,7 +868,7 @@ function pageTransitionIn() {
   var tl = gsap.timeline();
 
   tl.call(function () {
-    scroll.stop();
+    locoScroll.stop();
   });
 
   tl.set(".loading-screen", {
@@ -1006,7 +1006,7 @@ function pageTransitionOut() {
   }
 
   tl.call(function () {
-    scroll.start();
+    locoScroll.start();
   });
 
   tl.to("main .once-in", {
@@ -1166,7 +1166,7 @@ function initLoaderHome() {
   });
 
   tl.call(function () {
-    scroll.stop();
+    locoScroll.stop();
   });
 
   tl.to(".loading-words", {
@@ -1266,7 +1266,7 @@ function initLoaderHome() {
   );
 
   tl.call(function () {
-    scroll.start();
+    locoScroll.start();
   });
 }
 
