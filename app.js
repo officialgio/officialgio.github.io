@@ -704,6 +704,9 @@ function initWorkAnimations() {
       "Feel free to message me directly on LinkedIn."
     );
     $(".home-lottie-gridroom").remove();
+    $(".row.bottom-footer .socials").remove();
+    // Remove the pseudo-element by adding a class
+    $(".main-wrap").removeClass("with-after");
   }
 }
 
