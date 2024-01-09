@@ -4,55 +4,21 @@
 //
 // --------------------------------------------------------------------
 
-let locoScroll;
+let scroll;
 gsap.registerPlugin(SplitText);
 
 const body = document.body;
 const select = (e) => document.querySelector(e);
 const selectAll = (e) => document.querySelectorAll(e);
 
+// you only need to define the configuration settings you want to CHANGE. Omitted properties won't be affected.
+gsap.config({
+  // nullTargetWarn: false,
+});
+
 // No need to understand all this.
 // Only the instantiation of LocomotiveScroll.
-function initSmoothScroll(container) {
-  // Scrolling Animation
-  locoScroll = new LocomotiveScroll({
-    el: document.querySelector("[data-scroll-container]"),
-    smooth: true,
-    smoothMobile: true,
-  });
 
-  // each time Locomotive Scroll updates, tell ScrollTrigger to update too (sync positioning)
-  locoScroll.on("scroll", ScrollTrigger.update);
-
-  // tell ScrollTrigger to use these proxy methods for the ".smooth-scroll" element since Locomotive Scroll is hijacking things
-  ScrollTrigger.scrollerProxy("[data-scroll-container]", {
-    scrollTop(value) {
-      return arguments.length
-        ? locoScroll.scrollTo(value, { duration: 0, disableLerp: true })
-        : locoScroll.scroll.instance.scroll.y;
-    }, // we don't have to define a scrollLeft because we're only scrolling vertically.
-    getBoundingClientRect() {
-      return {
-        top: 0,
-        left: 0,
-        width: window.innerWidth,
-        height: window.innerHeight,
-      };
-    },
-    // LocomotiveScroll handles things completely differently on mobile devices - it doesn't even transform the container at all! So to get the correct behavior and avoid jitters, we should pin things with position: fixed on mobile. We sense it by checking to see if there's a transform applied to the container (the LocomotiveScroll-controlled element).
-    pinType: container.querySelector("[data-scroll-container]").style.transform
-      ? "transform"
-      : "fixed",
-  });
-
-  ScrollTrigger.defaults({ scroller: "[data-scroll-container]" });
-
-  // each time the window updates, we should refresh ScrollTrigger and then update LocomotiveScroll.
-  ScrollTrigger.addEventListener("refresh", () => locoScroll.update());
-
-  // after everything is set up, refresh() ScrollTrigger and update LocomotiveScroll because padding may have been added for pinning, etc.
-  ScrollTrigger.refresh();
-}
 // Split Text
 function initSplitText() {
   var splitTextLines = new SplitText(".split-lines", {
@@ -742,81 +708,121 @@ function initWorkAnimations() {
   }
 }
 
-function initPageTransitions() {
-  // do something before the transition starts
-  barba.hooks.before(() => {
-    select("html").classList.add("is-transitioning");
+function initSmoothScroll(container) {
+  // Scrolling Animation
+  locoScroll = new LocomotiveScroll({
+    el: container.querySelector("[data-scroll-container]"),
+    smooth: true,
+    multiplier: 1,
+    smoothMobile: true,
   });
 
-  // do something after the transition finishes
-  barba.hooks.after(() => {
-    select("html").classList.remove("is-transitioning");
-    // reinit locomotive scroll
-    scroll.init();
-    scroll.stop();
+  // each time Locomotive Scroll updates, tell ScrollTrigger to update too (sync positioning)
+  locoScroll.on("scroll", ScrollTrigger.update);
+
+  // tell ScrollTrigger to use these proxy methods for the ".smooth-scroll" element since Locomotive Scroll is hijacking things
+  ScrollTrigger.scrollerProxy("[data-scroll-container]", {
+    scrollTop(value) {
+      return arguments.length
+        ? locoScroll.scrollTo(value, { duration: 0, disableLerp: true })
+        : locoScroll.scroll.instance.scroll.y;
+    }, // we don't have to define a scrollLeft because we're only scrolling vertically.
+    getBoundingClientRect() {
+      return {
+        top: 0,
+        left: 0,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+    },
+    // LocomotiveScroll handles things completely differently on mobile devices - it doesn't even transform the container at all! So to get the correct behavior and avoid jitters, we should pin things with position: fixed on mobile. We sense it by checking to see if there's a transform applied to the container (the LocomotiveScroll-controlled element).
+    pinType: container.querySelector("[data-scroll-container]").style.transform
+      ? "transform"
+      : "fixed",
   });
 
-  // scroll to the top of the page
-  barba.hooks.enter(() => {
-    scroll.destroy();
-  });
+  ScrollTrigger.defaults({ scroller: "[data-scroll-container]" });
 
-  // scroll to the top of the page
-  barba.hooks.afterEnter(() => {
-    window.scrollTo(0, 0);
-  });
+  // each time the window updates, we should refresh ScrollTrigger and then update LocomotiveScroll.
+  ScrollTrigger.addEventListener("refresh", () => locoScroll.update());
 
-  // NOTE: data.next = current container
-  barba.init({
-    sync: true,
-    debug: true,
-    timeout: 7000,
-    transitions: [
-      {
-        name: "default",
-        once(data) {
-          // Current page once transition (browser first load)
-          initSmoothScroll(data.next.container);
-          initScript();
-          initLoader();
-        },
-        async leave(data) {
-          // Current page leave transition
-          pageTransitionIn(data.current);
-          await delay(495);
-          data.current.container.remove();
-        },
-        async enter(data) {
-          // Next page enter transition
-          pageTransitionOut(data.next); // optional
-          initNextWord(data);
-        },
-        async beforeEnter(data) {
-          //Before enter transition/view
-          ScrollTrigger.getAll().forEach((t) => t.kill());
-          locoScroll.destroy(); // Optional!
-          initSmoothScroll(data.next.container);
-          initScript();
-          ScrollTrigger.refresh(); // IMPORTANT!
-        },
-      },
-      {
-        // If this isn't done then initLoader() will be called from once
-        name: "to-home",
-        from: {},
-        to: {
-          namespace: ["home"],
-        },
-        once(data) {
-          // do something once on the initial page load
-          initSmoothScroll(data.next.container);
-          initScript();
-          initLoaderHome();
-        },
-      },
-    ],
-  });
+  // after everything is set up, refresh() ScrollTrigger and update LocomotiveScroll because padding may have been added for pinning, etc.
+  ScrollTrigger.refresh();
 }
+
+// do something before the transition starts
+barba.hooks.before(() => {
+  select("html").classList.add("is-transitioning");
+});
+
+// do something after the transition finishes
+barba.hooks.after(() => {
+  select("html").classList.remove("is-transitioning");
+  // reinit locomotive scroll
+  scroll.init();
+  scroll.stop();
+});
+
+// scroll to the top of the page
+barba.hooks.enter(() => {
+  scroll.destroy();
+});
+
+// scroll to the top of the page
+barba.hooks.afterEnter(() => {
+  window.scrollTo(0, 0);
+});
+
+// NOTE: data.next = current container
+barba.init({
+  sync: true,
+  debug: true,
+  timeout: 7000,
+  transitions: [
+    {
+      name: "default",
+      once(data) {
+        // Current page once transition (browser first load)
+        initSmoothScroll(data.next.container);
+        initScript();
+        initLoader();
+      },
+      async leave(data) {
+        // Current page leave transition
+        pageTransitionIn(data.current);
+        await delay(495);
+        data.current.container.remove();
+      },
+      async enter(data) {
+        // Next page enter transition
+        pageTransitionOut(data.next); // optional
+        initNextWord(data);
+      },
+      async beforeEnter(data) {
+        //Before enter transition/view
+        ScrollTrigger.getAll().forEach((t) => t.kill());
+        locoScroll.destroy(); // Optional!
+        initSmoothScroll(data.next.container);
+        initScript();
+        ScrollTrigger.refresh(); // IMPORTANT!
+      },
+    },
+    {
+      // If this isn't done then initLoader() will be called from once
+      name: "to-home",
+      from: {},
+      to: {
+        namespace: ["home"],
+      },
+      once(data) {
+        // do something once on the initial page load
+        initSmoothScroll(data.next.container);
+        initScript();
+        initLoaderHome();
+      },
+    },
+  ],
+});
 
 function delay(n) {
   n = n || 2000;
@@ -851,7 +857,7 @@ function pageTransitionIn() {
   var tl = gsap.timeline();
 
   tl.call(function () {
-    locoScroll.stop();
+    scroll.stop();
   });
 
   tl.set(".loading-screen", {
@@ -989,7 +995,7 @@ function pageTransitionOut() {
   }
 
   tl.call(function () {
-    locoScroll.start();
+    scroll.start();
   });
 
   tl.to("main .once-in", {
@@ -1149,7 +1155,7 @@ function initLoaderHome() {
   });
 
   tl.call(function () {
-    locoScroll.stop();
+    scroll.stop();
   });
 
   tl.to(".loading-words", {
@@ -1249,7 +1255,7 @@ function initLoaderHome() {
   );
 
   tl.call(function () {
-    locoScroll.start();
+    scroll.start();
   });
 }
 
@@ -1488,5 +1494,3 @@ function initFlickitySlider() {
     }
   });
 }
-
-initPageTransitions();

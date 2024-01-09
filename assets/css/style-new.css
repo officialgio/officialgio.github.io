@@ -21,6 +21,7 @@
 /* ------------------------- Main Stuff -------------------------------------------------- */
 
 main {
+   box-sizing: border-box;
    overflow: hidden;
    width: 100vw;
    position: fixed;
@@ -28,7 +29,7 @@ main {
    background: var(--color-white);
 }
 
-/* .main-wrap::after {
+.main-wrap::after {
    display: block;
    position: absolute;
    content: "";
@@ -38,9 +39,8 @@ main {
    left: 0;
    background: var(--color-dark);
    z-index: -1;
-} */
+}
 
-/* optional*/
 .main-wrap {
    box-sizing: border-box;
    width: 100vw;
@@ -65,7 +65,6 @@ main.touch .main-wrap {
       position: relative;
    }
 }
-
 /* ------------------------- Page Transition -------------------------------------------------- */
 
 /* optional*/
