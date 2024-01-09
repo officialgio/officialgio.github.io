@@ -4,7 +4,7 @@
 //
 // --------------------------------------------------------------------
 
-let scroll;
+let locoScroll;
 gsap.registerPlugin(SplitText);
 
 const body = document.body;
@@ -750,79 +750,90 @@ function initSmoothScroll(container) {
   ScrollTrigger.refresh();
 }
 
-// do something before the transition starts
-barba.hooks.before(() => {
-  select("html").classList.add("is-transitioning");
-});
+function initPageTransitions() {
+  // do something before the transition starts
+  barba.hooks.before(() => {
+    select("html").classList.add("is-transitioning");
+  });
 
-// do something after the transition finishes
-barba.hooks.after(() => {
-  select("html").classList.remove("is-transitioning");
-  // reinit locomotive scroll
-  scroll.init();
-  scroll.stop();
-});
+  // do something after the transition finishes
+  barba.hooks.after(() => {
+    select("html").classList.remove("is-transitioning");
+    // reinit locomotive scroll
+    scroll.init();
+    scroll.stop();
+  });
 
-// scroll to the top of the page
-barba.hooks.enter(() => {
-  scroll.destroy();
-});
+  // scroll to the top of the page
+  barba.hooks.enter(() => {
+    scroll.destroy();
+  });
 
-// scroll to the top of the page
-barba.hooks.afterEnter(() => {
-  window.scrollTo(0, 0);
-});
+  // scroll to the top of the page
+  barba.hooks.afterEnter(() => {
+    window.scrollTo(0, 0);
+  });
 
-// NOTE: data.next = current container
-barba.init({
-  sync: true,
-  debug: true,
-  timeout: 7000,
-  transitions: [
-    {
-      name: "default",
-      once(data) {
-        // Current page once transition (browser first load)
-        initSmoothScroll(data.next.container);
-        initScript();
-        initLoader();
+  if ($(window).width() > 540) {
+    barba.hooks.leave(() => {
+      $(".btn-hamburger, .btn-menu").removeClass("active");
+      $("main").removeClass("nav-active");
+    });
+  }
+
+  // NOTE: data.next = current container
+  barba.init({
+    sync: true,
+    debug: true,
+    timeout: 7000,
+    transitions: [
+      {
+        name: "default",
+        once(data) {
+          // Current page once transition (browser first load)
+          initSmoothScroll(data.next.container);
+          initScript();
+          initLoader();
+        },
+        async leave(data) {
+          // Current page leave transition
+          pageTransitionIn(data.current);
+          await delay(495);
+          data.current.container.remove();
+        },
+        async enter(data) {
+          // Next page enter transition
+          pageTransitionOut(data.next); // optional
+          initNextWord(data);
+        },
+        async beforeEnter(data) {
+          //Before enter transition/view
+          ScrollTrigger.getAll().forEach((t) => t.kill());
+          locoScroll.destroy(); // Optional!
+          initSmoothScroll(data.next.container);
+          initScript();
+          ScrollTrigger.refresh(); // IMPORTANT!
+        },
       },
-      async leave(data) {
-        // Current page leave transition
-        pageTransitionIn(data.current);
-        await delay(495);
-        data.current.container.remove();
+      {
+        // If this isn't done then initLoader() will be called from once
+        name: "to-home",
+        from: {},
+        to: {
+          namespace: ["home"],
+        },
+        once(data) {
+          // do something once on the initial page load
+          initSmoothScroll(data.next.container);
+          initScript();
+          initLoaderHome();
+        },
       },
-      async enter(data) {
-        // Next page enter transition
-        pageTransitionOut(data.next); // optional
-        initNextWord(data);
-      },
-      async beforeEnter(data) {
-        //Before enter transition/view
-        ScrollTrigger.getAll().forEach((t) => t.kill());
-        locoScroll.destroy(); // Optional!
-        initSmoothScroll(data.next.container);
-        initScript();
-        ScrollTrigger.refresh(); // IMPORTANT!
-      },
-    },
-    {
-      // If this isn't done then initLoader() will be called from once
-      name: "to-home",
-      from: {},
-      to: {
-        namespace: ["home"],
-      },
-      once(data) {
-        // do something once on the initial page load
-        initSmoothScroll(data.next.container);
-        initScript();
-        initLoaderHome();
-      },
-    },
-  ],
-});
+    ],
+  });
+}
+
+initPageTransitions();
 
 function delay(n) {
   n = n || 2000;
